@@ -22,4 +22,3 @@ do
 	sshpass -p $1 ssh-copy-id -f -i $pub -o "StrictHostKeyChecking no" $hostname
     done
 done
-
