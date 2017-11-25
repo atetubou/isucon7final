@@ -120,6 +120,8 @@ var precalced = [][]itemPre{}
 
 var sen = big.NewInt(1000)
 
+var str2cache = make(map[string]*big.Int)
+
 func getPrice1000(m mItem, itemID, cnt int) *big.Int {
 	if len(precalced) == 0 {
 		return new(big.Int).Mul(m.GetPrice(cnt), sen)
@@ -369,9 +371,8 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 		return false
 	}
 	for _, b := range buyings {
-		var item mItem
-		tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", b.ItemID)
-		cost := new(big.Int).Mul(item.GetPrice(b.Ordinal), big.NewInt(1000))
+		var item mItem = mItems[b.ItemID-1]
+		cost := getPrice1000(item, b.ItemID, b.Ordinal)
 		totalMilliIsu.Sub(totalMilliIsu, cost)
 		if b.Time <= reqTime {
 			gain := new(big.Int).Mul(item.GetPower(b.Ordinal), big.NewInt(reqTime-b.Time))
@@ -379,9 +380,9 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 		}
 	}
 
-	var item mItem
-	tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", itemID)
-	need := new(big.Int).Mul(item.GetPrice(countBought+1), big.NewInt(1000))
+	var item mItem = mItems[itemID-1]
+
+	need := getPrice1000(item, itemID, countBought+1)
 	if totalMilliIsu.Cmp(need) < 0 {
 		log.Println("not enough")
 		tx.Rollback()
