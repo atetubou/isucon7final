@@ -443,12 +443,12 @@ func getStatus(roomName string) (*GameStatus, error) {
 		tx.Rollback()
 		return nil, fmt.Errorf("updateRoomTime failure")
 	}
+	tx.Commit()
 
 	mItems := map[int]mItem{}
 	var items []mItem
-	err = tx.Select(&items, "SELECT * FROM m_item")
+	err = db.Select(&items, "SELECT * FROM m_item")
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	for _, item := range items {
@@ -456,20 +456,13 @@ func getStatus(roomName string) (*GameStatus, error) {
 	}
 
 	addings := []Adding{}
-	err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
+	err = db.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
 	buyings := []Buying{}
-	err = tx.Select(&buyings, "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	err = tx.Commit()
+	err = db.Select(&buyings, "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
 	if err != nil {
 		return nil, err
 	}
