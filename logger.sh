@@ -191,6 +191,7 @@ stop_logging() {
     # record_nginx_log || warn "failed to record nginx log"
     # stop_dstat || warn "failed to stop dstat"
     record_cpuprof || warn "failed to copy cpu profile"
+    curl localhost/stat > $(log_file_name_of appstat txt)
     echo "Successfully stopped logging.  (Working directory: $LOG_DIR)"
 }
 

@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -109,6 +110,9 @@ type itemPre struct {
 	price2exp Exponential
 	price1000 *big.Int
 }
+
+var buyCnt uint64
+var addCnt uint64
 
 var mItems = []mItem{}
 var precalced = [][]itemPre{}
@@ -693,8 +697,10 @@ func serveGameConn(ws *websocket.Conn, roomName string) {
 			switch req.Action {
 			case "addIsu":
 				success = addIsu(roomName, str2big(req.Isu), req.Time)
+				atomic.AddUint64(&addCnt, 1)
 			case "buyItem":
 				success = buyItem(roomName, req.ItemID, req.CountBought, req.Time)
+				atomic.AddUint64(&buyCnt, 1)
 			default:
 				log.Println("Invalid Action")
 				return

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -64,6 +65,16 @@ func getInitializeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 
+func getStatHandler(w http.ResponseWriter, r *http.Request) {
+	a := atomic.LoadUint64(&addCnt)
+	b := atomic.LoadUint64(&buyCnt)
+
+	fmt.Fprintf(w, "add: %d\n", a)
+	fmt.Fprintf(w, "buy: %d\n", b)
+	fmt.Fprintf(w, "expected score: %d\n", a+b*10)
+	w.WriteHeader(200)
+}
+
 func getRoomHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -101,6 +112,7 @@ func main() {
 	StartLogger(GetNextLogID())
 
 	r := mux.NewRouter()
+	r.HandleFunc("/stat", getStatHandler)
 	r.HandleFunc("/initialize", getInitializeHandler)
 	r.HandleFunc("/room/", getRoomHandler)
 	r.HandleFunc("/room/{room_name}", getRoomHandler)
