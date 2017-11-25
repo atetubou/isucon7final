@@ -511,12 +511,27 @@ func getStatus(roomName string) (*GameStatus, error) {
 			tx.Rollback()
 			return nil, err
 		}
-		rvalue.addings = append(rvalue.addings, addings...)
+
+		m := map[int64]string{}
+
+		for _, v := range rvalue.addings {
+			m[v.Time] = v.Isu
+		}
+
+		for _, v := range addings {
+			m[v.Time] = v.Isu
+		}
+		rvalue.addings = []Adding{}
+		for k, v := range m {
+			rvalue.addings = append(rvalue.addings, Adding{
+				RoomName: roomName,
+				Time:     k,
+				Isu:      v,
+			})
+		}
 		rvalue.currentTime = currentTime
 		addings = rvalue.addings
 	}
-
-	log.Printf("addings %v\n", addings)
 
 	buyings := []Buying{}
 	err = tx.Select(&buyings, "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
@@ -531,6 +546,8 @@ func getStatus(roomName string) (*GameStatus, error) {
 	}
 
 	rcache.Set(roomName, rvalue)
+
+	log.Printf("addings %v\n", addings)
 
 	status, err := calcStatus(currentTime, mItems, addings, buyings)
 	if err != nil {
