@@ -328,17 +328,17 @@ func addIsu(roomName string, reqIsu *big.Int, reqTime int64) bool {
 		return false
 	}
 
-	var isuStr string
-	err = tx.QueryRow("SELECT isu FROM adding WHERE room_name = ? AND time = ? FOR UPDATE", roomName, reqTime).Scan(&isuStr)
-	if err != nil {
-		log.Println(err)
-		tx.Rollback()
-		return false
-	}
-	isu := str2big(isuStr)
+	// var isuStr string
+	// err = tx.QueryRow("SELECT isu FROM adding WHERE room_name = ? AND time = ? FOR UPDATE", roomName, reqTime).Scan(&isuStr)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	tx.Rollback()
+	// 	return false
+	// }
+	// isu := str2big(isuStr)
 
-	isu.Add(isu, reqIsu)
-	_, err = tx.Exec("UPDATE adding SET isu = ? WHERE room_name = ? AND time = ?", isu.String(), roomName, reqTime)
+	// isu.Add(isu, reqIsu)
+	_, err = tx.Exec("UPDATE adding SET isu = ? WHERE room_name = ? AND time = ?", reqIsu.String(), roomName, reqTime)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
