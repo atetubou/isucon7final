@@ -441,6 +441,17 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		itemBuilt0[m.ItemID] = itemBuilt[m.ItemID]
 		price := m.GetPrice(itemBought[m.ItemID] + 1)
 		itemPrice[m.ItemID] = price
+		const offset = 3
+		if totalMilliIsu.BitLen() > price.BitLen()+sen.BitLen()+offset {
+			itemOnSale[m.ItemID] = 0
+			continue
+		}
+
+		if totalMilliIsu.BitLen()+offset < price.BitLen()+sen.BitLen() {
+			continue
+		}
+
+		// totalMilliIsu >= price * sen?
 		if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(price, sen)) {
 			itemOnSale[m.ItemID] = 0 // 0 は 時刻 currentTime で購入可能であることを表す
 		}
