@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"log"
 	"math/big"
 	"strconv"
@@ -13,7 +12,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
-	"golang.org/x/sync/syncmap"
 )
 
 type GameRequest struct {
@@ -233,13 +231,6 @@ func str2big(s string) *big.Int {
 	return x
 }
 
-type bkey struct {
-	k1 uint64
-	k2 int
-}
-
-var bcache syncmap.Map
-
 func big2exp(n *big.Int) Exponential {
 	if n.IsInt64() {
 		i64 := n.Int64()
@@ -247,23 +238,6 @@ func big2exp(n *big.Int) Exponential {
 			return Exponential{i64, 0}
 		}
 	}
-
-	b := n.Bytes()
-	h := fnv.New64()
-	sz := len(b)
-	if sz > 10 {
-		sz = 10
-	}
-	h.Sum(b[0:sz])
-	k1 := h.Sum64()
-	k2 := n.BitLen()
-
-	key := bkey{k1, k2}
-
-	if v, ok := bcache.Load(key); ok {
-		return v.(Exponential)
-	}
-
 	s := n.String()
 
 	if len(s) <= 15 {
@@ -274,9 +248,7 @@ func big2exp(n *big.Int) Exponential {
 	if err != nil {
 		log.Panic(err)
 	}
-	e := Exponential{t, int64(len(s) - 15)}
-	bcache.Store(key, e)
-	return e
+	return Exponential{t, int64(len(s) - 15)}
 }
 
 func getCurrentTime() (int64, error) {
