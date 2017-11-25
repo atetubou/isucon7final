@@ -516,6 +516,8 @@ func getStatus(roomName string) (*GameStatus, error) {
 		addings = rvalue.addings
 	}
 
+	log.Printf("addings %v\n", addings)
+
 	buyings := []Buying{}
 	err = tx.Select(&buyings, "SELECT item_id, ordinal, time FROM buying WHERE room_name = ?", roomName)
 	if err != nil {
