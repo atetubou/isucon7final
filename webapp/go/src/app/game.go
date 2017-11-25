@@ -513,6 +513,7 @@ func getStatus(roomName string) (*GameStatus, error) {
 		}
 		rvalue.addings = append(rvalue.addings, addings...)
 		rvalue.currentTime = currentTime
+		addings = rvalue.addings
 	}
 
 	buyings := []Buying{}
