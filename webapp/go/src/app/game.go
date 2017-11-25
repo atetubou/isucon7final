@@ -101,6 +101,68 @@ type mItem struct {
 	Price4 int64 `db:"price4"`
 }
 
+type itemPre struct {
+	power     *big.Int
+	power2exp Exponential
+
+	power1000 *big.Int
+
+	price     *big.Int
+	price2exp Exponential
+}
+
+var mItems = []mItem{}
+var precalced = [][]itemPre{}
+
+var sen = big.NewInt(1000)
+
+func getPrice1000(m mItem, itemID, cnt int) *big.Int {
+	if len(precalced) == 0 {
+		return new(big.Int).Mul(m.GetPrice(cnt), sen)
+	}
+	p := precalced[itemID-1]
+	if cnt < len(p) {
+		return p[cnt].power1000
+	}
+	return new(big.Int).Mul(m.GetPrice(cnt), sen)
+}
+
+func PrecalcItems() {
+	tx, err := db.Beginx()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sen := big.NewInt(1000)
+
+	for i := 0; i < 13; i++ {
+		var item mItem
+		tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", i+1)
+		mItems = append(mItems, item)
+		items := []itemPre{}
+		for j := 0; j < 500; j++ {
+			power := item.GetPower(j)
+			price := item.GetPrice(j)
+			new(big.Int).Mul(power, sen)
+			items = append(items, itemPre{
+				power:     power,
+				power2exp: big2exp(power),
+
+				power1000: new(big.Int).Mul(power, sen),
+
+				price:     price,
+				price2exp: big2exp(price),
+			})
+		}
+		precalced = append(precalced, items)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func (item *mItem) GetPower(count int) *big.Int {
 	// power(x):=(cx+1)*d^(ax+b)
 	a := item.Power1
@@ -421,7 +483,10 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		// buying は 即座に isu を消費し buying.time からアイテムの効果を発揮する
 		itemBought[b.ItemID]++
 		m := mItems[b.ItemID]
-		totalMilliIsu.Sub(totalMilliIsu, new(big.Int).Mul(m.GetPrice(b.Ordinal), big.NewInt(1000)))
+
+		price1000 := getPrice1000(m, b.ItemID, b.Ordinal)
+
+		totalMilliIsu.Sub(totalMilliIsu, price1000)
 
 		if b.Time <= currentTime {
 			itemBuilt[b.ItemID]++
