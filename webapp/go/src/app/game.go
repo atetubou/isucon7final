@@ -126,6 +126,17 @@ func getPrice1000(m mItem, itemID, cnt int) *big.Int {
 	return new(big.Int).Mul(m.GetPrice(cnt), sen)
 }
 
+func getPrice2exp(m mItem, itemID, cnt int) Exponential {
+	if len(precalced) == 0 {
+		return big2exp(m.GetPrice(cnt))
+	}
+	p := precalced[itemID-1]
+	if cnt < len(p) {
+		return p[cnt].price2exp
+	}
+	return big2exp(m.GetPrice(cnt))
+}
+
 func PrecalcItems() {
 	tx, err := db.Beginx()
 	if err != nil {
@@ -603,12 +614,13 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 	}
 
 	gsItems := []Item{}
-	for itemID, _ := range mItems {
+	for itemID, m := range mItems {
+
 		gsItems = append(gsItems, Item{
 			ItemID:      itemID,
 			CountBought: itemBought[itemID],
 			CountBuilt:  itemBuilt0[itemID],
-			NextPrice:   big2exp(itemPrice[itemID]),
+			NextPrice:   getPrice2exp(m, itemID, itemBought[m.ItemID]+1),
 			Power:       itemPower0[itemID],
 			Building:    itemBuilding[itemID],
 		})
