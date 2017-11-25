@@ -510,7 +510,19 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 			if _, ok := itemOnSale[itemID]; ok {
 				continue
 			}
-			if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(itemPrice[itemID], big.NewInt(1000))) {
+
+			const offset = 3
+
+			if totalMilliIsu.BitLen() > itemPrice[itemID].BitLen()+sen.BitLen()+offset {
+				itemOnSale[itemID] = t
+				continue
+			}
+
+			if totalMilliIsu.BitLen()+offset < itemPrice[itemID].BitLen()+sen.BitLen() {
+				continue
+			}
+
+			if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(itemPrice[itemID], sen)) {
 				itemOnSale[itemID] = t
 			}
 		}
