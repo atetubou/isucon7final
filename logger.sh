@@ -2,6 +2,7 @@
 set -eu
 cd $(dirname $0)
 source ./util.sh
+source /home/isucon/.profile
 
 NGINX_LOG_FILE=/var/log/nginx/main_access.log
 MYSQL_LOG_FILE=/var/log/mysql/mysql-slow.log
