@@ -25,7 +25,11 @@ set -eux
 
 cd $(dirname $0)
 
-#rsync -av webapp/go/ ~/webapp/go/
+(
+    su isucon bash -c "cd ~/webapp/go; make"
+)
+
+rsync -av webapp/go/ ~/webapp/go/
 rsync -av etc/nginx/ /etc/nginx/
 #rsync -av etc/mysql/ /etc/mysql/
 #rsync -av etc/sysctl.conf /etc/
