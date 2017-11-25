@@ -71,6 +71,7 @@ func getStatHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "add: %d\n", a)
 	fmt.Fprintf(w, "buy: %d\n", b)
+	fmt.Fprintf(w, "status: %d\n", atomic.LoadUint64(&statusCnt))
 	fmt.Fprintf(w, "expected score: %d\n", a+b*10)
 	w.WriteHeader(200)
 }

@@ -113,6 +113,7 @@ type itemPre struct {
 
 var buyCnt uint64
 var addCnt uint64
+var statusCnt uint64
 
 var mItems = []mItem{}
 var precalced = [][]itemPre{}
@@ -730,6 +731,7 @@ func serveGameConn(ws *websocket.Conn, roomName string) {
 				return
 			}
 		case <-ticker.C:
+			atomic.AddUint64(&statusCnt, 1)
 			status, err := getStatus(roomName)
 			if err != nil {
 				log.Println(err)
