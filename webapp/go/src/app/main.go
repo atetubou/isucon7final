@@ -61,8 +61,6 @@ func getInitializeHandler(w http.ResponseWriter, r *http.Request) {
 	db.MustExec("TRUNCATE TABLE buying")
 	db.MustExec("TRUNCATE TABLE room_time")
 
-	StartLogger(GetNextLogID())
-
 	w.WriteHeader(204)
 }
 
@@ -98,6 +96,7 @@ func wsGameHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	initDB()
+	StartLogger(GetNextLogID())
 
 	r := mux.NewRouter()
 	r.HandleFunc("/initialize", getInitializeHandler)
