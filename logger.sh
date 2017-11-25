@@ -5,7 +5,7 @@ source ./util.sh
 
 NGINX_LOG_FILE=/var/log/nginx/main_access.log
 MYSQL_LOG_FILE=/var/log/mysql/mysql-slow.log
-LOG_DIR=./log
+LOG_DIR=/home/isucon/log/log
 CPUPROF_FILE=/tmp/cpu.prof
 ALP_CONF=./alpconfig.yml
 
