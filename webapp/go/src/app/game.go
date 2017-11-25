@@ -435,19 +435,21 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 	}
 
 	sen := big.NewInt(1000)
-
+	senbl := sen.BitLen()
+	totalbl := totalMilliIsu.BitLen()
 	for _, m := range mItems {
 		itemPower0[m.ItemID] = big2exp(itemPower[m.ItemID])
 		itemBuilt0[m.ItemID] = itemBuilt[m.ItemID]
 		price := m.GetPrice(itemBought[m.ItemID] + 1)
 		itemPrice[m.ItemID] = price
 		const offset = 3
-		if totalMilliIsu.BitLen() > price.BitLen()+sen.BitLen()+offset {
+		pbl := price.BitLen()
+		if totalbl > pbl+senbl+offset {
 			itemOnSale[m.ItemID] = 0
 			continue
 		}
 
-		if totalMilliIsu.BitLen()+offset < price.BitLen()+sen.BitLen() {
+		if totalbl+offset < pbl+senbl {
 			continue
 		}
 
@@ -505,6 +507,9 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 			})
 		}
 
+		totalBitlen := totalMilliIsu.BitLen()
+		senBitlen := sen.BitLen()
+
 		// 時刻 t で購入可能になったアイテムを記録する
 		for itemID := range mItems {
 			if _, ok := itemOnSale[itemID]; ok {
@@ -513,12 +518,13 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 
 			const offset = 3
 
-			if totalMilliIsu.BitLen() > itemPrice[itemID].BitLen()+sen.BitLen()+offset {
+			ib := itemPrice[itemID].BitLen()
+			if totalBitlen > ib+senBitlen+offset {
 				itemOnSale[itemID] = t
 				continue
 			}
 
-			if totalMilliIsu.BitLen()+offset < itemPrice[itemID].BitLen()+sen.BitLen() {
+			if totalBitlen+offset < ib+senBitlen {
 				continue
 			}
 
