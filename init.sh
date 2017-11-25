@@ -26,7 +26,7 @@ set -eux
 cd $(dirname $0)
 
 (
-    su isucon bash -c "cd ~/webapp/go; make"
+    su isucon bash -c "cd ~/webapp/go; make ensure; make"
 )
 
 rsync -av webapp/go/ ~/webapp/go/
