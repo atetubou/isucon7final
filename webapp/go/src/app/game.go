@@ -140,7 +140,7 @@ func PrecalcItems() {
 		tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", i+1)
 		mItems = append(mItems, item)
 		items := []itemPre{}
-		for j := 0; j < 500; j++ {
+		for j := 0; j < 100; j++ {
 			power := item.GetPower(j)
 			price := item.GetPrice(j)
 			new(big.Int).Mul(power, sen)
