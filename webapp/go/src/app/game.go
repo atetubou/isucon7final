@@ -120,7 +120,16 @@ var precalced = [][]itemPre{}
 
 var sen = big.NewInt(1000)
 
-var str2cache = make(map[string]*big.Int)
+func getPower(m mItem, itemID, cnt int) *big.Int {
+	if len(precalced) == 0 {
+		return m.GetPower(cnt)
+	}
+	p := precalced[itemID-1]
+	if cnt < len(p) {
+		return p[cnt].power
+	}
+	return m.GetPower(cnt)
+}
 
 func getPrice1000(m mItem, itemID, cnt int) *big.Int {
 	if len(precalced) == 0 {
@@ -375,7 +384,7 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 		cost := getPrice1000(item, b.ItemID, b.Ordinal)
 		totalMilliIsu.Sub(totalMilliIsu, cost)
 		if b.Time <= reqTime {
-			gain := new(big.Int).Mul(item.GetPower(b.Ordinal), big.NewInt(reqTime-b.Time))
+			gain := new(big.Int).Mul(getPower(item, b.ItemID, b.Ordinal), big.NewInt(reqTime-b.Time))
 			totalMilliIsu.Add(totalMilliIsu, gain)
 		}
 	}
@@ -505,7 +514,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 
 		if b.Time <= currentTime {
 			itemBuilt[b.ItemID]++
-			power := m.GetPower(itemBought[b.ItemID])
+			power := getPower(m, b.ItemID, itemBought[b.ItemID])
 			totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(power, big.NewInt(currentTime-b.Time)))
 			totalPower.Add(totalPower, power)
 			itemPower[b.ItemID].Add(itemPower[b.ItemID], power)
@@ -566,7 +575,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 				m := mItems[b.ItemID]
 				updatedID[b.ItemID] = true
 				itemBuilt[b.ItemID]++
-				power := m.GetPower(b.Ordinal)
+				power := getPower(m, b.ItemID, b.Ordinal)
 				itemPower[b.ItemID].Add(itemPower[b.ItemID], power)
 				totalPower.Add(totalPower, power)
 			}
