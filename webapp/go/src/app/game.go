@@ -172,12 +172,14 @@ func PrecalcItems() {
 
 	sen := big.NewInt(1000)
 
+	limit := []int{500, 200, 200, 200, 100, 100, 100, 50, 50, 50, 30, 30, 10}
+
 	for i := 0; i < 13; i++ {
 		var item mItem
 		tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", i+1)
 		mItems = append(mItems, item)
 		items := []itemPre{}
-		for j := 0; j < 30; j++ {
+		for j := 0; j < limit[i]; j++ {
 			power := item.GetPower(j)
 			price := item.GetPrice(j)
 			new(big.Int).Mul(power, sen)
