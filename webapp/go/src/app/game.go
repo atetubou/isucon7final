@@ -264,19 +264,19 @@ func getCurrentTime() (int64, error) {
 }
 
 type roomValue struct {
-	currentTime *big.Int
+	currentTime int64
 	addings     []Adding
 }
 type roomCache struct {
 	mu sync.RWMutex
-	m  map[int64]*roomValue
+	m  map[string]*roomValue
 }
 
 var rcache = roomCache{
-	m: make(map[int64]*roomValue),
+	m: make(map[string]*roomValue),
 }
 
-func (r *roomCache) Get(roomId int64) *roomValue {
+func (r *roomCache) Get(roomId string) *roomValue {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if v, ok := r.m[roomId]; ok {
@@ -285,7 +285,7 @@ func (r *roomCache) Get(roomId int64) *roomValue {
 	return nil
 }
 
-func (r *roomCache) Set(roomId int64, v *roomValue) {
+func (r *roomCache) Set(roomId string, v *roomValue) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.m[roomId] = v
@@ -294,7 +294,7 @@ func (r *roomCache) Set(roomId int64, v *roomValue) {
 func (r *roomCache) Clear() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.m = make(map[int64]*roomValue)
+	r.m = make(map[string]*roomValue)
 }
 
 // 部屋のロックを取りタイムスタンプを更新する
@@ -490,11 +490,29 @@ func getStatus(roomName string) (*GameStatus, error) {
 		mItems[item.ItemID] = item
 	}
 
+	rvalue := rcache.Get(roomName)
 	addings := []Adding{}
-	err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+
+	if rvalue == nil {
+		err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		rvalue = &roomValue{
+			currentTime: currentTime,
+			addings:     addings,
+		}
+
+	} else {
+		err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ? AND time > ?", roomName, rvalue.currentTime)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		rvalue.addings = append(rvalue.addings, addings...)
+		rvalue.currentTime = currentTime
 	}
 
 	buyings := []Buying{}
@@ -508,6 +526,8 @@ func getStatus(roomName string) (*GameStatus, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	rcache.Set(roomName, rvalue)
 
 	status, err := calcStatus(currentTime, mItems, addings, buyings)
 	if err != nil {
