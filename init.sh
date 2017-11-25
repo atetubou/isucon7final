@@ -34,5 +34,5 @@ rsync -av etc/nginx/ /etc/nginx/
 rm -rf /var/log/nginx/main_access.log
 service nginx restart
 
-# systemctl restart isuxi.go.service
-time curl localhost/initialize
+systemctl restart cco.golang.service
+# time curl localhost/initialize
