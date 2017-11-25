@@ -232,6 +232,12 @@ func str2big(s string) *big.Int {
 }
 
 func big2exp(n *big.Int) Exponential {
+	if n.IsInt64() {
+		i64 := n.Int64()
+		if i64 < 1000000000000000 {
+			return Exponential{i64, 0}
+		}
+	}
 	s := n.String()
 
 	if len(s) <= 15 {
