@@ -115,7 +115,8 @@ var buyCnt uint64
 var addCnt uint64
 var statusCnt uint64
 
-var mItems = []mItem{}
+var aItems = []mItem{}
+var mapItems = make(map[int]mItem)
 var precalced = [][]itemPre{}
 
 var sen = big.NewInt(1000)
@@ -177,7 +178,8 @@ func PrecalcItems() {
 	for i := 0; i < 13; i++ {
 		var item mItem
 		tx.Get(&item, "SELECT * FROM m_item WHERE item_id = ?", i+1)
-		mItems = append(mItems, item)
+		aItems = append(aItems, item)
+		mapItems[i+1] = item
 		items := []itemPre{}
 		for j := 0; j < limit[i]; j++ {
 			power := item.GetPower(j)
@@ -399,7 +401,7 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 		return false
 	}
 	for _, b := range buyings {
-		var item mItem = mItems[b.ItemID-1]
+		var item mItem = aItems[b.ItemID-1]
 		cost := getPrice1000(item, b.ItemID, b.Ordinal)
 		totalMilliIsu.Sub(totalMilliIsu, cost)
 		if b.Time <= reqTime {
@@ -408,7 +410,7 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 		}
 	}
 
-	var item mItem = mItems[itemID-1]
+	var item mItem = aItems[itemID-1]
 
 	need := getPrice1000(item, itemID, countBought+1)
 	if totalMilliIsu.Cmp(need) < 0 {
@@ -444,16 +446,7 @@ func getStatus(roomName string) (*GameStatus, error) {
 		return nil, fmt.Errorf("updateRoomTime failure")
 	}
 
-	mItems := map[int]mItem{}
-	var items []mItem
-	err = tx.Select(&items, "SELECT * FROM m_item")
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	for _, item := range items {
-		mItems[item.ItemID] = item
-	}
+	mItems := mapItems
 
 	addings := []Adding{}
 	err = tx.Select(&addings, "SELECT time, isu FROM adding WHERE room_name = ?", roomName)
