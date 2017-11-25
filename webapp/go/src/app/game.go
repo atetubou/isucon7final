@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -260,6 +261,40 @@ func getCurrentTime() (int64, error) {
 		return 0, err
 	}
 	return currentTime, nil
+}
+
+type roomValue struct {
+	currentTime *big.Int
+	addings     []Adding
+}
+type roomCache struct {
+	mu sync.RWMutex
+	m  map[int64]*roomValue
+}
+
+var rcache = roomCache{
+	m: make(map[int64]*roomValue),
+}
+
+func (r *roomCache) Get(roomId int64) *roomValue {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	if v, ok := r.m[roomId]; ok {
+		return v
+	}
+	return nil
+}
+
+func (r *roomCache) Set(roomId int64, v *roomValue) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.m[roomId] = v
+}
+
+func (r *roomCache) Clear() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.m = make(map[int64]*roomValue)
 }
 
 // 部屋のロックを取りタイムスタンプを更新する
