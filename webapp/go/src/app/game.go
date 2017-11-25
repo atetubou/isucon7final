@@ -131,6 +131,17 @@ func getPower(m mItem, itemID, cnt int) *big.Int {
 	return m.GetPower(cnt)
 }
 
+func getPrice(m mItem, itemID, cnt int) *big.Int {
+	if len(precalced) == 0 {
+		return m.GetPrice(cnt)
+	}
+	p := precalced[itemID-1]
+	if cnt < len(p) {
+		return p[cnt].price
+	}
+	return m.GetPrice(cnt)
+}
+
 func getPrice1000(m mItem, itemID, cnt int) *big.Int {
 	if len(precalced) == 0 {
 		return new(big.Int).Mul(m.GetPrice(cnt), sen)
@@ -369,7 +380,7 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 	}
 
 	for _, a := range addings {
-		totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), big.NewInt(1000)))
+		totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), sen))
 	}
 
 	var buyings []Buying
@@ -529,7 +540,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 	for _, m := range mItems {
 		itemPower0[m.ItemID] = big2exp(itemPower[m.ItemID])
 		itemBuilt0[m.ItemID] = itemBuilt[m.ItemID]
-		price := m.GetPrice(itemBought[m.ItemID] + 1)
+		price := getPrice(m, m.ItemID, itemBought[m.ItemID]+1)
 		itemPrice[m.ItemID] = price
 		const offset = 3
 		pbl := price.BitLen()
