@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"runtime/pprof"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -61,17 +60,10 @@ func getInitializeHandler(w http.ResponseWriter, r *http.Request) {
 	db.MustExec("TRUNCATE TABLE adding")
 	db.MustExec("TRUNCATE TABLE buying")
 	db.MustExec("TRUNCATE TABLE room_time")
-	w.WriteHeader(204)
 
-	f, err := os.Create("/tmp/cpu.prof")
-	if err != nil {
-		panic(err)
-	}
-	pprof.StartCPUProfile(f)
-	go func() {
-		time.Sleep(70 * time.Second)
-		pprof.StopCPUProfile()
-	}()
+	StartLogger(GetNextLogID())
+
+	w.WriteHeader(204)
 }
 
 func getRoomHandler(w http.ResponseWriter, r *http.Request) {
