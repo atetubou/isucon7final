@@ -392,7 +392,7 @@ func buyItem(roomName string, itemID int, countBought int, reqTime int64) bool {
 	}
 
 	var countBuying int
-	err = tx.Get(&countBuying, "SELECT COUNT(*) FROM buying WHERE room_name = ? AND item_id = ?", roomName, itemID)
+	err = tx.Get(&countBuying, "SELECT MAX(ordinal) FROM buying WHERE room_name = ? AND item_id = ?", roomName, itemID)
 	if err != nil {
 		log.Println(err)
 		tx.Rollback()
