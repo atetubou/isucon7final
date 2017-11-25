@@ -105,10 +105,9 @@ type itemPre struct {
 	power     *big.Int
 	power2exp Exponential
 
-	power1000 *big.Int
-
 	price     *big.Int
 	price2exp Exponential
+	price1000 *big.Int
 }
 
 var mItems = []mItem{}
@@ -122,7 +121,7 @@ func getPrice1000(m mItem, itemID, cnt int) *big.Int {
 	}
 	p := precalced[itemID-1]
 	if cnt < len(p) {
-		return p[cnt].power1000
+		return p[cnt].price1000
 	}
 	return new(big.Int).Mul(m.GetPrice(cnt), sen)
 }
@@ -148,10 +147,9 @@ func PrecalcItems() {
 				power:     power,
 				power2exp: big2exp(power),
 
-				power1000: new(big.Int).Mul(power, sen),
-
 				price:     price,
 				price2exp: big2exp(price),
+				price1000: new(big.Int).Mul(price, sen),
 			})
 		}
 		precalced = append(precalced, items)
