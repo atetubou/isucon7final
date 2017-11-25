@@ -726,6 +726,7 @@ func serveGameConn(ws *websocket.Conn, roomName string) {
 			success := false
 			switch req.Action {
 			case "addIsu":
+				time.Sleep(100 * time.Millisecond)
 				success = addIsu(roomName, str2big(req.Isu), req.Time)
 				atomic.AddUint64(&addCnt, 1)
 			case "buyItem":
